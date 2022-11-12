@@ -8,19 +8,17 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var showModal: Bool = false
-    @State var newTask: String = ""
+    // All state variables have been moved to the ContentViewModel file.
+    // Here we have only an instance of the new class we created.
+    @StateObject var viewModel: ViewModel = ViewModel()
     
-    // Following variable stores a list of named tuples
-    // that rapresents a task. Each tuple have a
-    // text argument for store the body of the task
-    // and a done argument for save if the task is done
-    // or not. More info about complex types here:
-    // https://docs.swift.org/swift-book/LanguageGuide/CollectionTypes.html
-    // https://www.tutlane.com/tutorial/swift/swift-tuples
-    
-    @State var tasks: [(text: String, done: Bool)] = []
-    
+    // As you can see all the code that had some
+    // logical function has now been replaced with
+    // calling methods or properties of the ViewModel
+    // More info at:
+    // https://docs.swift.org/swift-book/LanguageGuide/ClassesAndStructures.html
+    // https://docs.swift.org/swift-book/LanguageGuide/Properties.html
+    // https://docs.swift.org/swift-book/LanguageGuide/Methods.html
     var body: some View {
         // Main page
         ScrollView {
@@ -36,7 +34,7 @@ struct ContentView: View {
                     
                     // Open modal button
                     Button {
-                        showModal = true
+                        viewModel.openModal()
                     } label: {
                         Image(systemName: "plus")
                             .font(.largeTitle)
@@ -49,37 +47,30 @@ struct ContentView: View {
                 
                 // Body
                 VStack {
-                    
-                    // This ForEach takes the indices of all
-                    // the tasks. More info at:
-                    // https://developer.apple.com/documentation/swift/collection/indices-swift.property-9kkbf
-                    // https://www.hackingwithswift.com/quick-start/swiftui/how-to-create-views-in-a-loop-using-foreach
-                    // https://www.hackingwithswift.com/sixty/3/7/the-ternary-operator
-                    ForEach (tasks.indices, id: \.self) { index in
+                    ForEach (viewModel.tasks.indices, id: \.self) { index in
                         
                         // A task
                         HStack {
                             // Checkmark
                             Button {
-                                tasks[index].done.toggle()
+                                viewModel.toggleCheckmark(at: index)
                             } label: {
-                                Image(systemName: tasks[index].done ? "checkmark" : "square")
-                                    .foregroundColor(tasks[index].done ? .green : .primary)
+                                Image(systemName: viewModel.taskDone(at: index) ? "checkmark" : "square")
+                                    .foregroundColor(viewModel.taskDone(at: index) ? .green : .primary)
                             }
                                 
                             Spacer()
                             
                             // Task text
-                            Text(tasks[index].text)
-                                .foregroundColor(tasks[index].done ? .secondary : .primary)
-                                .strikethrough(tasks[index].done)
+                            Text(viewModel.taskText(at: index))
+                                .foregroundColor(viewModel.taskDone(at: index) ? .secondary : .primary)
+                                .strikethrough(viewModel.taskDone(at: index))
                             
                             Spacer()
                             
                             // Delete task button
                             Button {
-                                // https://www.tutorialkart.com/swift-tutorial/swift-remove-element-from-array/
-                                tasks.remove(at: index)
+                                viewModel.deleteTask(at: index)
                             } label: {
                                 Image(systemName: "trash")
                                     .foregroundColor(.red)
@@ -96,7 +87,7 @@ struct ContentView: View {
         } // End ScrollView
         
         // Modal
-        .sheet(isPresented: $showModal) {
+        .sheet(isPresented: $viewModel.showModal) {
             Spacer(minLength: 30)
             VStack {
                 HStack {
@@ -109,7 +100,7 @@ struct ContentView: View {
                 } // End HStack
                 .padding()
                 
-                TextField("Your task here", text: $newTask)
+                TextField("Your task here", text: $viewModel.newTask)
                     .padding()
                 
                 // Add button on the left
@@ -117,19 +108,14 @@ struct ContentView: View {
                     Spacer()
                     
                     Button {
-                        // https://developer.apple.com/documentation/swift/array/append(_:)-1ytnt
-                        tasks.append((text: newTask, done: false))
-                        showModal = false
-                        newTask = ""
+                        viewModel.addTask()
                     } label: {
                         Text("Add")
                             .fontWeight(.semibold)
                             .padding(6)
                     }
                     .buttonStyle(.borderedProminent)
-                    
-                    // https://swiftwombat.com/how-to-disable-button-in-swiftui/
-                    .disabled(newTask == "")
+                    .disabled(viewModel.newTaskEmpty())
                     
                 } // End HStack
                 .padding()
