@@ -9,7 +9,17 @@ import SwiftUI
 
 struct ContentView: View {
     @State var showModal: Bool = false
-    @State var newTask: String = "Buy a new keyboa"
+    @State var newTask: String = ""
+    
+    // Following variable stores a list of named tuples
+    // that rapresents a task. Each tuple have a
+    // text argument for store the body of the task
+    // and a done argument for save if the task is done
+    // or not. More info about complex types here:
+    // https://docs.swift.org/swift-book/LanguageGuide/CollectionTypes.html
+    // https://www.tutlane.com/tutorial/swift/swift-tuples
+    
+    @State var tasks: [(text: String, done: Bool)] = []
     
     var body: some View {
         // Main page
@@ -40,123 +50,50 @@ struct ContentView: View {
                 // Body
                 VStack {
                     
-                    // First task
-                    HStack {
-                        // Checkmark
-                        Image(systemName: "checkmark")
-                            .foregroundColor(.green)
+                    // This ForEach takes the indices of all
+                    // the tasks. More info at:
+                    // https://developer.apple.com/documentation/swift/collection/indices-swift.property-9kkbf
+                    // https://www.hackingwithswift.com/quick-start/swiftui/how-to-create-views-in-a-loop-using-foreach
+                    // https://www.hackingwithswift.com/sixty/3/7/the-ternary-operator
+                    ForEach (tasks.indices, id: \.self) { index in
                         
-                        Spacer()
+                        // A task
+                        HStack {
+                            // Checkmark
+                            Button {
+                                tasks[index].done.toggle()
+                            } label: {
+                                Image(systemName: tasks[index].done ? "checkmark" : "square")
+                                    .foregroundColor(tasks[index].done ? .green : .primary)
+                            }
+                                
+                            Spacer()
+                            
+                            // Task text
+                            Text(tasks[index].text)
+                                .foregroundColor(tasks[index].done ? .secondary : .primary)
+                                .strikethrough(tasks[index].done)
+                            
+                            Spacer()
+                            
+                            // Delete task button
+                            Button {
+                                // https://www.tutorialkart.com/swift-tutorial/swift-remove-element-from-array/
+                                tasks.remove(at: index)
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                            
+                        } // End HStack
+                        .padding(.horizontal)
                         
-                        // Task text
-                        Text("Coding for an hour")
-                            .foregroundColor(.secondary)
-                            .strikethrough()
-                        
-                        Spacer()
-                        
-                        // Delete task button
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                        
-                    } // End HStack
-                    .padding(.horizontal)
-                    
-                    Spacer(minLength: 18)
-                    
-                    // Second task
-                    HStack {
-                        // Checkmark
-                        Image(systemName: "checkmark")
-                            .foregroundColor(.green)
-                        
-                        Spacer()
-                        
-                        // Task text
-                        Text("Teach to a monkey to write code")
-                            .foregroundColor(.secondary)
-                            .strikethrough()
-                        
-                        Spacer()
-                        
-                        // Delete task button
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                        
-                    } // End HStack
-                    .padding(.horizontal)
-                    
-                    Spacer(minLength: 18)
-                    
-                    // Third task
-                    HStack {
-                        // Square
-                        Image(systemName: "square")
-                        
-                        Spacer()
-                        
-                        // Task text
-                        Text("Just another task")
-                        
-                        Spacer()
-                        
-                        // Delete task button
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                        
-                    } // Fourth HStack
-                    .padding(.horizontal)
-                    
-                    Spacer(minLength: 18)
-                    
-                    // Fourth task
-                    HStack {
-                        // Square
-                        Image(systemName: "square")
-                        
-                        Spacer()
-                        
-                        // Task text
-                        Text("Write the next algorithm")
-                        
-                        Spacer()
-                        
-                        // Delete task button
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                        
-                    } // End HStack
-                    .padding(.horizontal)
-                    
-                    Spacer(minLength: 18)
-                    
-                    // Fifth task
-                    HStack {
-                        // Checkmark
-                        Image(systemName: "checkmark")
-                            .foregroundColor(.green)
-                        
-                        Spacer()
-                        
-                        // Task text
-                        Text("Support other monkeys")
-                            .foregroundColor(.secondary)
-                            .strikethrough()
-                        
-                        Spacer()
-                        
-                        // Delete task button
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                        
-                    } // End HStack
-                    .padding(.horizontal)
-                    
-                    Spacer(minLength: 18)
+                        Spacer(minLength: 18)
+                    }
                     
                 } // End VStack
             } // End VStack
-        }// End ScrollView
+        } // End ScrollView
         
         // Modal
         .sheet(isPresented: $showModal) {
@@ -180,13 +117,19 @@ struct ContentView: View {
                     Spacer()
                     
                     Button {
-                        // future code here
+                        // https://developer.apple.com/documentation/swift/array/append(_:)-1ytnt
+                        tasks.append((text: newTask, done: false))
+                        showModal = false
+                        newTask = ""
                     } label: {
                         Text("Add")
                             .fontWeight(.semibold)
                             .padding(6)
                     }
                     .buttonStyle(.borderedProminent)
+                    
+                    // https://swiftwombat.com/how-to-disable-button-in-swiftui/
+                    .disabled(newTask == "")
                     
                 } // End HStack
                 .padding()
